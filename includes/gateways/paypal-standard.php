@@ -361,11 +361,7 @@ add_action( 'init', 'edd_listen_for_paypal_ipn' );
  * @since 1.0
  * @return void
  */
- public function edd_process_paypal_ipn() {
-	 
-	// "Disable PayPal IPN Verification" setting checkbox IS checked
-	// Accepting order information from non-validated IPN is a security vulnerability
-    // if ( edd_get_option( 'disable_paypal_verification' ) ) return; // now what? 
+function edd_process_paypal_ipn() {
 
     // Check the request method is POST
     if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] != 'POST' ) {
@@ -379,6 +375,11 @@ add_action( 'init', 'edd_listen_for_paypal_ipn' );
         edd_debug_log( 'Empty $_POST data from PayPal IPN' );
         return;
     }
+	
+    // "Disable PayPal IPN Verification" setting checkbox IS checked
+    // Accepting order information from non-validated IPN is a security vulnerability
+    // if ( edd_get_option( 'disable_paypal_verification' ) ) return; // now what? 
+	
 
     $ipn_message = $_POST;
 
