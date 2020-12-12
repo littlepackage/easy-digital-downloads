@@ -361,7 +361,7 @@ add_action( 'init', 'edd_listen_for_paypal_ipn' );
  * @since 1.0
  * @return void
  */
- public function process_paypal_ipn() {
+ public function edd_process_paypal_ipn() {
 	 
 	// "Disable PayPal IPN Verification" setting checkbox IS checked
 	// Accepting order information from non-validated IPN is a security vulnerability
