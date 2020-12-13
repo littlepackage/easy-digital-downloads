@@ -363,25 +363,24 @@ add_action( 'init', 'edd_listen_for_paypal_ipn' );
  */
 function edd_process_paypal_ipn() {
 
-    // Check the request method is POST
-    if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] != 'POST' ) {
-        return;
-    }
+	// Check the request method is POST
+    	if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] != 'POST' ) {
+        	return;
+    	}
 
-    edd_debug_log( 'edd_process_paypal_ipn() running during PayPal IPN processing' );
+    	edd_debug_log( 'edd_process_paypal_ipn() running during PayPal IPN processing' );
 
-    // Check if POST is empty
-    if ( ! count( $_POST ) ) {
-        edd_debug_log( 'Empty $_POST data from PayPal IPN' );
-        return;
-    }
+    	// Check if POST is empty
+    	if ( ! count( $_POST ) ) {
+        	edd_debug_log( 'Empty $_POST data from PayPal IPN' );
+        	return;
+    	}
 	
-    // "Disable PayPal IPN Verification" setting checkbox IS checked
-    // Accepting order information from non-validated IPN is a security vulnerability
-    // if ( edd_get_option( 'disable_paypal_verification' ) ) return; // now what? 
-	
+    	// "Disable PayPal IPN Verification" setting checkbox IS checked
+    	// Accepting order information from non-validated IPN is a security vulnerability
+    	// if ( edd_get_option( 'disable_paypal_verification' ) ) return; // now what? 
 
-    $ipn_message = $_POST;
+    	$ipn_message = $_POST;
 
 	/**
  	* PayPal Web IPN Verification
@@ -406,47 +405,47 @@ function edd_process_paypal_ipn() {
     	$return_message += wp_unslash( $_POST );	
 
     	$args = array(
-			'method'      	=> 'POST',
+		'method'      	=> 'POST',
 	        'timeout'     	=> 60, // extend timeout from 45
-    	    'httpversion' 	=> '1.1',
+    	    	'httpversion' 	=> '1.1',
         	'user-agent'   	=> 'EDD IPN Verification/' . EDD_VERSION . '; ' . get_bloginfo( 'url' ),
 	        'body'        	=> $return_message
     	);
 
-	    edd_debug_log( 'Attempting to verify PayPal IPN. Data sent for verification: ' . print_r( $args, true ) );
+	edd_debug_log( 'Attempting to verify PayPal IPN. Data sent for verification: ' . print_r( $args, true ) );
 
     	// Check if using PayPal Developer's IPN testing simulator
-		// and use the correct testing URL
-		$ipn_testing = false;
-		if ( $ipn_message['test_ipn'] ) {
-			$ipn_testing = true;
-  		}
+	// and use the correct testing URL
+	$ipn_testing = false;
+	if ( $ipn_message['test_ipn'] ) {
+		$ipn_testing = true;
+	}
 
-	    // Get validation response
+	// Get validation response
     	// wp_safe_remote_post() not necessary since URLs are static & known
-	    $ipn_response = wp_remote_post( $this->edd_get_paypal_redirect( true, true, $ipn_testing ), $args );
+	$ipn_response = wp_remote_post( $this->edd_get_paypal_redirect( true, true, $ipn_testing ), $args );
 
     	if ( is_wp_error( $ipn_response ) ) {
 
-        	edd_record_gateway_error( __( 'IPN Error', 'easy-digital-downloads' ), sprintf( __( 'Invalid IPN verification response. IPN data: %s', 'easy-digital-downloads' ), json_encode( $ipn_response ) ) );
+		edd_record_gateway_error( __( 'IPN Error', 'easy-digital-downloads' ), sprintf( __( 'wp_remote_post() error during IPN verification. IPN data: %s', 'easy-digital-downloads' ), json_encode( $ipn_response ) ) );
 	        // Distinguish this error from next in logs
-    	    edd_debug_log( 'wp_remote_post() error during IPN verification. IPN data: ' . print_r( $ipn_response, true ) );
+    	    	edd_debug_log( 'wp_remote_post() error during IPN verification. IPN data: ' . print_r( $ipn_response, true ) );
 
         	return; // Something went wrong
-	    }
+	}
 
     	// should maybe also check response codes
-	    if ( ( $ipn_response['response']['code'] < 200 || $ipn_response['response']['code'] > 300 ) || ! strstr( $ipn_response['body'], 'VERIFIED' ) ) {
+	if ( ( $ipn_response['response']['code'] < 200 || $ipn_response['response']['code'] > 300 ) || ! strstr( $ipn_response['body'], 'VERIFIED' ) ) {
 
         	edd_record_gateway_error( __( 'IPN Error', 'easy-digital-downloads' ), sprintf( __( 'Invalid IPN verification response. IPN data: %s', 'easy-digital-downloads' ), json_encode( $ipn_response ) ) );
-    	    edd_debug_log( 'Invalid IPN verification response. IPN data: ' . print_r( $ipn_response, true ) );
+    	    	edd_debug_log( 'Invalid IPN verification response. IPN data: ' . print_r( $ipn_response, true ) );
 
 	        return; // Response not okay
     	}
 
     	edd_debug_log( 'IPN verified successfully' );
 		
-		// Add hook?
+	// Add hook where IPN actually verified?
 	
 	} // finished validating IPN
 	 
@@ -454,67 +453,67 @@ function edd_process_paypal_ipn() {
 	// depending on if validation done or not,
 	// $ipn_message may or may not be safe to use
 
-    // Get current arg separator
-    $arg_separator = edd_get_php_arg_separator_output();
+    	// Get current arg separator
+    	$arg_separator = edd_get_php_arg_separator_output();
 	 
 	$encoded_data = '';
 
-    // Loop through each $_POST ($ipn_message) value 
-    foreach ( $ipn_message as $key => $value ) {
-        // Encode the value and append the data
-        $encoded_data .= $arg_separator . "$key=" . urlencode( $value );
-    }
+    	// Loop through each $_POST ($ipn_message) value 
+    	foreach ( $ipn_message as $key => $value ) {
+        	// Encode the value and append the data
+       	 	$encoded_data .= $arg_separator . "$key=" . urlencode( $value );
+    	}
 
-    // Convert collected post data to an array
-    parse_str( $encoded_data, $encoded_data_array );
+    	// Convert collected post data to an array
+    	parse_str( $encoded_data, $encoded_data_array );
 
-    foreach ( $encoded_data_array as $key => $value ) {
+    	foreach ( $encoded_data_array as $key => $value ) {
 
-        if ( false !== strpos( $key, 'amp;' ) ) {
-            $new_key = str_replace( '&amp;', '&', $key );
-            $new_key = str_replace( 'amp;', '&', $new_key );
+        	if ( false !== strpos( $key, 'amp;' ) ) {
+            		$new_key = str_replace( '&amp;', '&', $key );
+            		$new_key = str_replace( 'amp;', '&', $new_key );
 
-            unset( $encoded_data_array[ $key ] );
-            $encoded_data_array[ $new_key ] = $value;
-        }
+            		unset( $encoded_data_array[ $key ] );
+            		$encoded_data_array[ $new_key ] = $value;
+        	}
 
-    }
+    	}
 
-    // Check if $encoded_data_array has been populated
-    if ( ! is_array( $encoded_data_array ) && ! empty( $encoded_data_array ) ) {
-        // how/why would this happen, and why wouldn't there be a catch?
-        return;
-    }
+    	// Check if $encoded_data_array has been populated
+    	if ( ! is_array( $encoded_data_array ) && ! empty( $encoded_data_array ) ) {
+        	// how/why would this happen, and why wouldn't there be a catch?
+        	return;
+    	}
 
-    $defaults = array(
-        'txn_type'       => '',
-        'payment_status' => ''
-    );
+    	$defaults = array(
+        	'txn_type'       => '',
+        	'payment_status' => ''
+    	);
 
-    $encoded_data_array = wp_parse_args( $encoded_data_array, $defaults );
+    	$encoded_data_array = wp_parse_args( $encoded_data_array, $defaults );
 
-    $payment_id = 0;
+    	$payment_id = 0;
 
-    if ( ! empty( $encoded_data_array[ 'parent_txn_id' ] ) ) {
-        $payment_id = edd_get_purchase_id_by_transaction_id( $encoded_data_array[ 'parent_txn_id' ] );
-    } elseif ( ! empty( $encoded_data_array[ 'txn_id' ] ) ) {
-        $payment_id = edd_get_purchase_id_by_transaction_id( $encoded_data_array[ 'txn_id' ] );
-    }
+    	if ( ! empty( $encoded_data_array[ 'parent_txn_id' ] ) ) {
+        	$payment_id = edd_get_purchase_id_by_transaction_id( $encoded_data_array[ 'parent_txn_id' ] );
+    	} elseif ( ! empty( $encoded_data_array[ 'txn_id' ] ) ) {
+        	$payment_id = edd_get_purchase_id_by_transaction_id( $encoded_data_array[ 'txn_id' ] );
+    	}
 
-    if ( empty( $payment_id ) ) {
-        $payment_id = ! empty( $encoded_data_array[ 'custom' ] ) ? absint( $encoded_data_array[ 'custom' ] ) : 0;
-    }
+    	if ( empty( $payment_id ) ) {
+        	$payment_id = ! empty( $encoded_data_array[ 'custom' ] ) ? absint( $encoded_data_array[ 'custom' ] ) : 0;
+    	}
 	     
 	do_action( 'edd_paypal_ipn_validated', $encoded_data_array, $payment_id );
 
-    if ( has_action( 'edd_paypal_' . $encoded_data_array['txn_type'] ) ) {
-        // Allow PayPal IPN types to be processed separately
-        do_action( 'edd_paypal_' . $encoded_data_array['txn_type'], $encoded_data_array, $payment_id );
-    } else {
-        // Fallback to web accept just in case the txn_type isn't present
-        do_action( 'edd_paypal_web_accept', $encoded_data_array, $payment_id );
-    }
-    exit;
+    	if ( has_action( 'edd_paypal_' . $encoded_data_array['txn_type'] ) ) {
+        	// Allow PayPal IPN types to be processed separately
+        	do_action( 'edd_paypal_' . $encoded_data_array['txn_type'], $encoded_data_array, $payment_id );
+    	} else {
+        	// Fallback to web accept just in case the txn_type isn't present
+        	do_action( 'edd_paypal_web_accept', $encoded_data_array, $payment_id );
+    	}
+    	exit;
 }
 add_action( 'edd_verify_paypal_ipn', 'edd_process_paypal_ipn' );
 
@@ -800,31 +799,31 @@ function edd_process_paypal_refund( $data, $payment_id = 0 ) {
  */
 function edd_get_paypal_redirect( $ssl_check = false, $ipn = false ) {
 
-    $protocol = 'http://';
-    if ( is_ssl() || ! $ssl_check ) {
-        $protocol = 'https://';
-    }
+	$protocol = 'http://';
+	if ( is_ssl() || ! $ssl_check ) {
+		$protocol = 'https://';
+	}
 
-    // Check the current payment mode
-    if ( edd_is_test_mode() || $testing ) { // Test mode
+	// Check the current payment mode
+	if ( edd_is_test_mode() || $testing ) { // Test mode
 
-        if( $ipn ) {
-                    $paypal_uri = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
-        } else {
-                    $paypal_uri = $protocol . 'www.sandbox.paypal.com/cgi-bin/webscr';
-        }
+        	if( $ipn ) {
+                    	$paypal_uri = 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr';
+        	} else {
+                    	$paypal_uri = $protocol . 'www.sandbox.paypal.com/cgi-bin/webscr';
+        	}
 
-    } else { // Live mode
+    	} else { // Live mode
 
-        if( $ipn ) {
-            $paypal_uri = 'https://ipnpb.paypal.com/cgi-bin/webscr';
-        } else {
-            $paypal_uri = $protocol . 'www.paypal.com/cgi-bin/webscr';
-        }
+        	if( $ipn ) {
+            		$paypal_uri = 'https://ipnpb.paypal.com/cgi-bin/webscr';
+        	} else {
+            		$paypal_uri = $protocol . 'www.paypal.com/cgi-bin/webscr';
+        	}
 
-    }
+    	}
 
-    return apply_filters( 'edd_paypal_uri', $paypal_uri, $ssl_check, $ipn );
+    	return apply_filters( 'edd_paypal_uri', $paypal_uri, $ssl_check, $ipn );
 }
 
 /**
